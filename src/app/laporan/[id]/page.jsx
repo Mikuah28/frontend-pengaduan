@@ -144,7 +144,7 @@ export default function DetailLaporan() {
 
             {/* Image */}
             {laporan?.gambar ? (
-              <div className="mx-4 mb-3 h-48 rounded-xl overflow-hidden bg-ink-100">
+              <div className="mx-4 mb-3 min-h-48 rounded-xl overflow-hidden bg-ink-100">
                 <img src={`${UPLOAD_URL}/${laporan.gambar}`} alt={laporan.judul} className="w-full h-full object-cover" />
               </div>
             ) : (
@@ -170,7 +170,7 @@ export default function DetailLaporan() {
                 {[
                   { label: 'Lokasi',    value: laporan?.lokasi },
                   { label: 'Kategori',  value: laporan?.kategori?.nama_kategori || laporan?.kategori?.namaKategori },
-                  { label: 'Tanggal',   value: laporan?.createdAt ? new Date(laporan.createdAt).toLocaleDateString('id-ID') : '—' },
+                  { label: 'Tanggal',   value: laporan?.create_at ? new Date(laporan.create_at).toLocaleDateString('id-ID') : '—' },
                   { label: 'ID Laporan', value: `#LPR-${id}` },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-ink-50 rounded-xl px-3 py-2">

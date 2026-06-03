@@ -199,7 +199,7 @@ export default function HomePage() {
 
                 {/* Image */}
                 {l.gambar && (
-                  <div className="mx-4 mb-3 h-36 rounded-xl overflow-hidden bg-ink-100">
+                  <div className="mx-4 mb-3 min-h-36 rounded-xl overflow-hidden bg-ink-100">
                     <img src={`${UPLOAD_URL}/${l.gambar}`} alt={l.judul} className="w-full h-full object-cover" />
                   </div>
                 )}

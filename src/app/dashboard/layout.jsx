@@ -13,6 +13,11 @@ export default function DashboardRootLayout({ children }) {
     if (!loading && !user) {
       router.push('/login')
     }
+
+    if(user?.role === 'user'){
+      router.push('/')
+    }
+
   }, [user, loading])
 
   if (loading) {

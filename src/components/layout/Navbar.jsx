@@ -78,7 +78,11 @@ export default function Navbar() {
                       <div className="text-xs font-medium text-ink-900">{user.username}</div>
                       <div className="text-[10px] text-ink-400">{user.role}</div>
                     </div>
-                    <Link href="/dashboard/profile" className="flex items-center gap-2 px-3 py-2 text-xs text-ink-700 hover:bg-ink-50 transition-all">
+                    <Link href={
+                      user.role === 'user' ?
+                      "/profile":
+                      "/dashboard/profile"
+                    } className="flex items-center gap-2 px-3 py-2 text-xs text-ink-700 hover:bg-ink-50 transition-all">
                       <User size={13} /> Profil saya
                     </Link>
                     {(user.role === 'admin' || user.role === 'super_admin') && (
