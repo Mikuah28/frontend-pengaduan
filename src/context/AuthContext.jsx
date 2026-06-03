@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
-import { authApi } from '@/lib/api'
+import { authApi, profileApi } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 const AuthContext = createContext(null)
@@ -13,28 +13,52 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
 
-  useEffect(() => {
-    const token = Cookies.get('token')
-    const role = Cookies.get('role')
-    const username = Cookies.get('username')
-    const userId = Cookies.get('userId')
-    if (token && role) {
-      setUser({ token, role, username, id: userId })
+  async function fetchAndSetProfile() {
+    try {
+      const token = Cookies.get('token');
+      console.log("Token yang terbaca di cookies:", token);
+
+      if (token) {
+        const res = await profileApi.getMe();
+        console.log("Hasil mentah res dari API:", res);
+
+        if (res) {
+          const profileData = res.data?.data || res.data || res;
+          console.log("Data profil yang akan dimasukkan ke state:", profileData);
+
+          setUser({
+            ...profileData,
+            token,
+          });
+        }
+      } else {
+        console.log("Fetch tidak dijalankan karena token tidak ditemukan di cookies");
+      }
+    } catch (err) {
+      console.error('Gagal mengambil data profil (Masuk blok catch):', err);
+      Cookies.remove('token');
+      Cookies.remove('role');
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false)
-  }, [])
+  }
+
+  useEffect(() => {
+    fetchAndSetProfile();
+  }, []);
 
   const login = async (email, password) => {
     try {
       const res = await authApi.login({ email, password })
       const { token, role } = res.data
       Cookies.set('token', token, { expires: 1 })
-      Cookies.set('role', role, { expires: 1 })
       setUser({ token, role })
       toast.success('Login berhasil!')
       if (role === 'super_admin') router.push('/dashboard/superadmin')
       else if (role === 'admin') router.push('/dashboard/admin')
       else router.push('/')
+      fetchAndSetProfile();
       return { ok: true }
     } catch (err) {
       const msg = err.response?.data?.message || 'Login gagal'

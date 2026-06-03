@@ -24,17 +24,17 @@ export default function DetailLaporan() {
   const { user } = useAuth()
   const router = useRouter()
 
-  const [laporan, setLaporan]   = useState(null)
+  const [laporan, setLaporan] = useState(null)
   const [komentar, setKomentar] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [liked, setLiked]       = useState(false)
-  const [saved, setSaved]       = useState(false)
-  const [votes, setVotes]       = useState({})   // { id: 'up'|'dn'|null }
-  const [replyTo, setReplyTo]   = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [liked, setLiked] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [votes, setVotes] = useState({})   // { id: 'up'|'dn'|null }
+  const [replyTo, setReplyTo] = useState(null)
   const [newComment, setNewComment] = useState('')
-  const [newReply, setNewReply]     = useState('')
-  const [sending, setSending]       = useState(false)
-  const [expanded, setExpanded]     = useState({})
+  const [newReply, setNewReply] = useState('')
+  const [sending, setSending] = useState(false)
+  const [expanded, setExpanded] = useState({})
 
   useEffect(() => { load() }, [id])
 
@@ -127,7 +127,15 @@ export default function DetailLaporan() {
           <div className="bg-white rounded-2xl border border-ink-100/60 overflow-hidden">
             {/* Header */}
             <div className="flex items-start gap-3 p-4 pb-3">
-              <Avatar name={laporan?.user?.username || 'U'} size="md" />
+              {
+                laporan?.user?.foto_profil ?
+                  (
+                    <img src={`${UPLOAD_URL}/${laporan?.user?.foto_profil}`} alt={laporan?.user?.username} className="size-9 rounded-full object-cover" />
+                  ) :
+                  (
+                    <Avatar name={laporan?.user?.username || 'U'} size="md" />
+                  )
+              }
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-ink-900">{laporan?.user?.username || 'Pelapor'}</span>
@@ -168,9 +176,9 @@ export default function DetailLaporan() {
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-2 mt-4">
                 {[
-                  { label: 'Lokasi',    value: laporan?.lokasi },
-                  { label: 'Kategori',  value: laporan?.kategori?.nama_kategori || laporan?.kategori?.namaKategori },
-                  { label: 'Tanggal',   value: laporan?.create_at ? new Date(laporan.create_at).toLocaleDateString('id-ID') : '—' },
+                  { label: 'Lokasi', value: laporan?.lokasi },
+                  { label: 'Kategori', value: laporan?.kategori?.nama_kategori || laporan?.kategori?.namaKategori },
+                  { label: 'Tanggal', value: laporan?.create_at ? new Date(laporan.create_at).toLocaleDateString('id-ID') : '—' },
                   { label: 'ID Laporan', value: `#LPR-${id}` },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-ink-50 rounded-xl px-3 py-2">
@@ -241,7 +249,14 @@ export default function DetailLaporan() {
 
             {/* Comment compose */}
             <div className="px-4 py-3 border-b border-ink-50 flex items-start gap-3">
-              <Avatar name={user?.username || 'G'} size="sm" />
+              {user?.foto_profil ?
+                (
+                  <img src={`${UPLOAD_URL}/${user?.foto_profil}`} alt={user?.user} className="size-7 rounded-full object-cover" />
+                ) :
+                (
+                  <Avatar name={user?.username || 'G'} size="sm" />
+                )
+              }
               <div className="flex-1">
                 <textarea
                   className="w-full text-xs border border-ink-100 rounded-xl px-3 py-2 resize-none outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 transition-all bg-ink-50 focus:bg-white"
@@ -272,7 +287,14 @@ export default function DetailLaporan() {
                 {komentar.map((c, i) => (
                   <div key={c.id || i} className="px-4 py-3">
                     <div className="flex items-start gap-3">
-                      <Avatar name={c.user?.username || 'U'} size="sm" color={i % 2 === 0 ? 'teal' : 'blue'} />
+                      {c.user?.foto_profil ?
+                        (
+                          <img src={`${UPLOAD_URL}/${c.user?.foto_profil}`} alt={user?.user} className="size-7 rounded-full object-cover" />
+                        ) :
+                        (
+                          <Avatar name={c.user?.username || 'G'} size="sm" />
+                        )
+                      }
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-ink-900">{c.user?.username || 'Anonim'}</span>
@@ -371,7 +393,15 @@ export default function DetailLaporan() {
           <div className="bg-white rounded-2xl border border-ink-100/60 p-4">
             <div className="text-xs font-medium text-ink-600 mb-3">Pelapor</div>
             <div className="flex items-center gap-3">
-              <Avatar name={laporan?.user?.username || 'U'} size="md" />
+              {
+                laporan?.user?.foto_profil ?
+                  (
+                    <img src={`${UPLOAD_URL}/${laporan?.user?.foto_profil}`} alt={laporan?.user?.username} className="size-9 rounded-full object-cover" />
+                  ) :
+                  (
+                    <Avatar name={laporan?.user?.username || 'U'} size="md" />
+                  )
+              }
               <div>
                 <div className="text-sm font-medium text-ink-900">{laporan?.user?.username || '—'}</div>
                 <div className="text-xs text-ink-400 mt-0.5">{laporan?.user?.email || '—'}</div>
@@ -385,9 +415,9 @@ export default function DetailLaporan() {
             <div className="flex flex-col gap-3">
               {[
                 { label: 'Dilaporkan', desc: 'Pelapor', done: true },
-                { label: 'Diterima',   desc: 'Sistem',  done: laporan?.status !== 'pending' && laporan?.status !== 'menunggu' },
-                { label: 'Diproses',   desc: 'Admin',   done: laporan?.status === 'diproses' || laporan?.status === 'selesai' },
-                { label: 'Selesai',    desc: 'Admin',   done: laporan?.status === 'selesai' },
+                { label: 'Diterima', desc: 'Sistem', done: laporan?.status !== 'pending' && laporan?.status !== 'menunggu' },
+                { label: 'Diproses', desc: 'Admin', done: laporan?.status === 'diproses' || laporan?.status === 'selesai' },
+                { label: 'Selesai', desc: 'Admin', done: laporan?.status === 'selesai' },
               ].map(({ label, desc, done }, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className={clsx('w-2 h-2 rounded-full shrink-0', done ? 'bg-teal-400' : 'bg-ink-200')} />

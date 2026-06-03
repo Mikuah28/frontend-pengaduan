@@ -14,21 +14,28 @@ import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
+import { useRouter } from 'next/navigation'
 
 const UPLOAD_URL = process.env.NEXT_PUBLIC_UPLOAD_URL || 'http://localhost:5000/uploads/images'
 
 export default function HomePage() {
   const { user } = useAuth()
-  const [laporan, setLaporan]   = useState([])
+  const router = useRouter()
+  const [laporan, setLaporan] = useState([])
   const [kategori, setKategori] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [liked, setLiked]       = useState({})
-  const [saved, setSaved]       = useState({})
-  const [filter, setFilter]     = useState({ status: '', kategori_id: '' })
-  const [search, setSearch]     = useState('')
-  const [meta, setMeta]         = useState({ total: 0 })
+  const [loading, setLoading] = useState(true)
+  const [liked, setLiked] = useState({})
+  const [saved, setSaved] = useState({})
+  const [filter, setFilter] = useState({ status: '', kategori_id: '' })
+  const [search, setSearch] = useState('')
+  const [meta, setMeta] = useState({ total: 0 })
 
-  useEffect(() => { loadKategori() }, [])
+  useEffect(() => {
+    loadKategori()
+    if (user?.role !== 'user') {
+      router.push('/dashboard')
+    }
+  }, [])
   useEffect(() => { loadLaporan() }, [filter])
 
   async function loadKategori() {
@@ -160,7 +167,12 @@ export default function HomePage() {
           {/* Compose box */}
           {user && (
             <Link href="/laporan/buat" className="bg-white rounded-2xl border border-ink-100/60 p-4 flex items-center gap-3 hover:border-teal-300 transition-all group">
-              <Avatar name={user.username} size="sm" />
+              {user?.foto_profil ? (
+                <img src={`${UPLOAD_URL}/${user?.foto_profil}`} alt={user?.username} className='size-7 rounded-full object-cover object-cover'></img>
+              ) : (
+                <Avatar name={user.username} size="sm" />
+              )}
+
               <div className="flex-1 bg-ink-50 rounded-xl px-4 py-2.5 text-xs text-ink-400 group-hover:bg-teal-50 group-hover:text-teal-600 transition-all">
                 Laporkan masalah di sekitar Anda...
               </div>
@@ -180,7 +192,14 @@ export default function HomePage() {
               <article key={l.id || i} className="bg-white rounded-2xl border border-ink-100/60 overflow-hidden hover:border-ink-200 transition-all">
                 {/* Post header */}
                 <div className="flex items-start gap-3 p-4 pb-3">
-                  <Avatar name={l.user?.username || 'U'} size="md" color={i % 2 === 0 ? 'teal' : 'blue'} />
+                  {l.user?.foto_profil ?
+                    (
+                      <img src={`${UPLOAD_URL}/${l.user?.foto_profil}`} alt={user?.user} className="size-9 rounded-full object-cover" />
+                    ) :
+                    (
+                      <Avatar name={l.user?.username || 'U'} size="md" color={i % 2 === 0 ? 'teal' : 'blue'} />
+                    )
+                  }
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium text-ink-900">{l.user?.username || 'Pelapor'}</span>
@@ -322,9 +341,9 @@ export default function HomePage() {
 }
 
 const TRENDING = [
-  { tag: '#JalanRusak',       kat: 'Infrastruktur · Trending', count: 412 },
-  { tag: '#SampahMenumpuk',   kat: 'Kebersihan',               count: 287 },
-  { tag: '#BanjirJakarta',    kat: 'Bencana Alam',             count: 198 },
+  { tag: '#JalanRusak', kat: 'Infrastruktur · Trending', count: 412 },
+  { tag: '#SampahMenumpuk', kat: 'Kebersihan', count: 287 },
+  { tag: '#BanjirJakarta', kat: 'Bencana Alam', count: 198 },
 ]
 const DEMO_KAT = [
   { id: 1, namaKategori: 'Infrastruktur Jalan' },

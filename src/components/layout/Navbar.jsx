@@ -7,13 +7,14 @@ import { useState, useRef, useEffect } from 'react'
 import clsx from 'clsx'
 
 const NAV_LINKS = [
-  { label: 'Beranda',   href: '/' },
-  { label: 'Laporan',   href: '/?tab=laporan' },
+  { label: 'Beranda', href: '/' },
+  { label: 'Laporan', href: '/?tab=laporan' },
   { label: 'Statistik', href: '/?tab=statistik' },
 ]
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const UPLOAD_URL = process.env.NEXT_PUBLIC_UPLOAD_URL || 'http://localhost:5000/uploads/images'
+  const { user, logout, loading } = useAuth()
   const [dropOpen, setDropOpen] = useState(false)
   const dropRef = useRef(null)
 
@@ -67,9 +68,13 @@ export default function Navbar() {
                   className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-white/8 transition-all"
                   onClick={() => setDropOpen(v => !v)}
                 >
-                  <div className="w-6 h-6 rounded-full bg-teal-400/20 flex items-center justify-center text-[10px] font-bold text-teal-300">
-                    {initials}
-                  </div>
+                  {user?.foto_profil ? (
+                    <img className='"w-6 h-6 rounded-full object-cover' src={`${UPLOAD_URL}/${user?.foto_profil}`} alt="" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-teal-400/20 flex items-center justify-center text-[10px] font-bold text-teal-300">
+                      {initials}
+                    </div>
+                  )}  
                   <ChevronDown size={12} className={clsx('text-white/50 transition-transform', dropOpen && 'rotate-180')} />
                 </button>
                 {dropOpen && (
@@ -80,8 +85,8 @@ export default function Navbar() {
                     </div>
                     <Link href={
                       user.role === 'user' ?
-                      "/profile":
-                      "/dashboard/profile"
+                        "/profile" :
+                        "/dashboard/profile"
                     } className="flex items-center gap-2 px-3 py-2 text-xs text-ink-700 hover:bg-ink-50 transition-all">
                       <User size={13} /> Profil saya
                     </Link>
@@ -104,7 +109,7 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login"    className="text-xs font-medium text-white/70 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-all">Masuk</Link>
+              <Link href="/login" className="text-xs font-medium text-white/70 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/8 transition-all">Masuk</Link>
               <Link href="/register" className="btn-primary text-xs py-1.5 px-3">Daftar</Link>
             </>
           )}

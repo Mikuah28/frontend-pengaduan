@@ -3,34 +3,70 @@
 import { useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/context/AuthContext'
-import { usersApi } from '@/lib/api'
+import { profileApi, usersApi } from '@/lib/api'
 import { Spinner, PageHeader } from '@/components/ui'
 import { User, Mail, Lock, Eye, EyeOff, Save, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Cookies from 'js-cookie'
 import Navbar from '@/components/layout/Navbar'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function ProfilePage() {
+    const UPLOAD_URL = process.env.NEXT_PUBLIC_UPLOAD_URL || 'http://localhost:5000/uploads/images'
     const { user } = useAuth()
     const [tab, setTab] = useState('info')
     const [saving, setSaving] = useState(false)
 
-    const [infoForm, setInfoForm] = useState({
-        username: user?.username || '',
-        email: user?.email || '',
-    })
+    const [infoForm, setInfoForm] = useState({ username: '', email: '' })
+    const [imageFile, setImageFile] = useState(null) // Tambahan state untuk menyimpan file gambar baru
+    const [imagePreview, setImagePreview] = useState(null)
     const [pwForm, setPwForm] = useState({ password: '', confirm: '' })
     const [showPw, setShowPw] = useState(false)
+
+    const router = useRouter()
+    useEffect(() => {
+        if (user?.role !== 'user') {
+            router.push('/dashboard')
+        }
+    }, [router])
+
+    useEffect(() => {
+        if (user) {
+            setInfoForm({
+                username: user.username || '',
+                email: user.email || '',
+            })
+        }
+    }, [user])
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            setImageFile(file)
+            setImagePreview(URL.createObjectURL(file))
+        }
+    }
 
     const handleSaveInfo = async () => {
         setSaving(true)
         try {
-            await usersApi.update(user?.id, { username: infoForm.username, email: infoForm.email })
-            Cookies.set('username', infoForm.username, { expires: 1 })
+            const formData = new FormData()
+            formData.append('username', infoForm.username)
+            formData.append('email', infoForm.email)
+
+            if (imageFile) {
+                formData.append('image', imageFile)
+            }
+            await profileApi.update(formData)
+
             toast.success('Profil berhasil diperbarui')
+            window.location.reload()
         } catch (e) {
             toast.error(e.response?.data?.message || 'Gagal menyimpan')
-        } finally { setSaving(false) }
+        } finally {
+            setSaving(false)
+        }
     }
 
     const handleSavePw = async () => {
@@ -58,14 +94,36 @@ export default function ProfilePage() {
                 {/* Profile card */}
                 <div className="xl:col-span-1">
                     <div className="card flex flex-col items-center text-center">
-                        {/* Avatar */}
-                        <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${roleColor} flex items-center justify-center text-white text-2xl font-bold font-display mb-4`}>
-                            {initials}
+                        {/* Avatar dengan fitur klik untuk ubah */}
+                        <div className="relative group cursor-pointer mb-4">
+                            <input
+                                type="file"
+                                id="avatar-input"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleImageChange}
+                            />
+                            <label htmlFor="avatar-input" className="cursor-pointer block relative rounded-2xl overflow-hidden">
+                                {imagePreview ? (
+                                    <img className='w-20 h-20 rounded-2xl object-cover' src={imagePreview} alt="Preview" />
+                                ) : user?.foto_profil ? (
+                                    <img className='w-20 h-20 rounded-2xl object-cover' src={`${UPLOAD_URL}/${user?.foto_profil}`} alt="Avatar" />
+                                ) : (
+                                    <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${roleColor} flex items-center justify-center text-white text-2xl font-bold font-display`}>
+                                        {initials}
+                                    </div>
+                                )}
+                                {/* Overlay hover efek */}
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[10px] text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl">
+                                    Ubah Foto
+                                </div>
+                            </label>
                         </div>
+
                         <div className="text-base font-medium text-ink-900">{user?.username || '—'}</div>
                         <div className="text-xs text-ink-500 mt-0.5">{user?.email || '—'}</div>
                         <div className={`mt-2 text-xs font-medium px-3 py-1 rounded-full ${user?.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
-                                user?.role === 'admin' ? 'bg-blue-50 text-blue-700' : 'bg-teal-50 text-teal-700'
+                            user?.role === 'admin' ? 'bg-blue-50 text-blue-700' : 'bg-teal-50 text-teal-700'
                             }`}>{roleLabel}</div>
 
                         <div className="w-full mt-5 pt-5 border-t border-ink-100 grid grid-cols-3 gap-2">
@@ -207,8 +265,8 @@ export default function ProfilePage() {
                                         <div className="mt-2 flex gap-1">
                                             {[1, 2, 3, 4].map(i => (
                                                 <div key={i} className={`h-1 flex-1 rounded-full transition-all ${pwForm.password.length >= i * 2
-                                                        ? i <= 2 ? 'bg-rose-400' : i === 3 ? 'bg-amber-400' : 'bg-teal-400'
-                                                        : 'bg-ink-100'
+                                                    ? i <= 2 ? 'bg-rose-400' : i === 3 ? 'bg-amber-400' : 'bg-teal-400'
+                                                    : 'bg-ink-100'
                                                     }`} />
                                             ))}
                                         </div>

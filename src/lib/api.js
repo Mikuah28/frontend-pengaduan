@@ -35,6 +35,11 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data),
 }
 
+export const profileApi = {
+  getMe: () => api.get('/profile/me'),
+  update: (data) => api.put('/profile', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+}
+
 // ─── USERS ───────────────────────────────────────────────────────────────────
 export const usersApi = {
   getAll: () => api.get('/users'),
