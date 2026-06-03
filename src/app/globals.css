@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600&family=Fraunces:wght@600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
+  --font-fraunces: 'Fraunces', serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-plus-jakarta);
+  background: #F1EFE8;
+  color: #2C2C2A;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  /* ── Buttons ───────────────────────────────── */
+  .btn-primary {
+    @apply bg-teal-400 hover:bg-teal-600 text-white font-medium px-4 py-2 rounded-xl text-sm transition-all duration-150 active:scale-95 inline-flex items-center gap-2;
+  }
+  .btn-secondary {
+    @apply bg-blue-600 hover:bg-blue-800 text-white font-medium px-4 py-2 rounded-xl text-sm transition-all duration-150 active:scale-95 inline-flex items-center gap-2;
+  }
+  .btn-ghost {
+    @apply bg-transparent hover:bg-ink-50 text-ink-600 border border-ink-100 font-medium px-4 py-2 rounded-xl text-sm transition-all duration-150 active:scale-95 inline-flex items-center gap-2;
+  }
+  .btn-danger {
+    @apply bg-rose-50 hover:bg-rose-400 text-rose-600 hover:text-white border border-rose-400/30 font-medium px-4 py-2 rounded-xl text-sm transition-all duration-150 active:scale-95 inline-flex items-center gap-2;
+  }
+  .btn-icon {
+    @apply w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 active:scale-95;
+  }
+
+  /* ── Cards ─────────────────────────────────── */
+  .card {
+    @apply bg-white rounded-2xl border border-ink-100/60 p-5;
+  }
+  .card-sm {
+    @apply bg-white rounded-xl border border-ink-100/60 p-4;
+  }
+
+  /* ── Form ──────────────────────────────────── */
+  .form-input {
+    @apply w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-100 bg-white text-ink-900 placeholder-ink-400 outline-none transition-all duration-150 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10;
+  }
+  .form-label {
+    @apply block text-xs font-medium text-ink-600 mb-1.5;
+  }
+  .form-select {
+    @apply w-full px-3.5 py-2.5 text-sm rounded-xl border border-ink-100 bg-white text-ink-900 outline-none transition-all duration-150 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/10 cursor-pointer;
+  }
+
+  /* ── Badges ────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-pending   { @apply bg-amber-50 text-amber-600; }
+  .badge-diproses  { @apply bg-blue-50 text-blue-600; }
+  .badge-selesai   { @apply bg-teal-50 text-teal-600; }
+  .badge-ditolak   { @apply bg-rose-50 text-rose-600; }
+  .badge-admin     { @apply bg-blue-50 text-blue-600; }
+  .badge-super     { @apply bg-purple-100 text-purple-700; }
+  .badge-user      { @apply bg-ink-50 text-ink-600 border border-ink-100; }
+
+  /* ── Table ─────────────────────────────────── */
+  .table-wrap { @apply overflow-x-auto rounded-xl border border-ink-100/60; }
+  .table      { @apply w-full text-sm; }
+  .table th   { @apply text-xs font-medium text-ink-500 bg-ink-50/80 px-4 py-3 text-left; }
+  .table td   { @apply px-4 py-3 border-t border-ink-100/60 text-ink-900; }
+  .table tr:hover td { @apply bg-ink-50/40; }
+
+  /* ── Sidebar ───────────────────────────────── */
+  .sidebar-item {
+    @apply flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-ink-600 transition-all duration-150 cursor-pointer border border-transparent hover:bg-teal-50 hover:text-teal-800 hover:border-teal-100;
+  }
+  .sidebar-item.active {
+    @apply bg-teal-50 text-teal-800 border-teal-100 font-medium;
+  }
+
+  /* ── Metric card ───────────────────────────── */
+  .metric-card {
+    @apply bg-white rounded-2xl border border-ink-100/60 p-5 flex flex-col gap-3;
+  }
+  .metric-icon {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D3D1C7; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #888780; }
+
+/* Animations */
+.animate-fade-up {
+  animation: fadeUp 0.4s ease forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
