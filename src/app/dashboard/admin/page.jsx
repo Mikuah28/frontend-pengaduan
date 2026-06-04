@@ -3,21 +3,27 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { StatCard, StatusBadge, Avatar, Spinner } from '@/components/ui'
-import { laporanApi, usersApi, kategoriApi } from '@/lib/api'
+import { laporanApi, usersApi, kategoriApi, dashboardApi } from '@/lib/api'
 import { FileText, Clock, Loader, CheckCircle, Users, Tag, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { formatDistanceToNow } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
 
 const CHART_COLORS = ['#1D9E75', '#378ADD', '#1D9E75', '#378ADD', '#1D9E75', '#378ADD']
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ total: 0, pending: 0, diproses: 0, selesai: 0 })
+  const router = useRouter()
+  const { user } = useAuth()
+  const [stats, setStats] = useState({})
   const [laporan, setLaporan] = useState([])
   const [users, setUsers] = useState([])
   const [kategori, setKategori] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activityChart, setActivityChart] = useState([]);
+  const [percentageData, setPercentageData] = useState([]);
 
   useEffect(() => {
     async function load() {
@@ -28,15 +34,13 @@ export default function AdminDashboard() {
           kategoriApi.getAll(),
         ])
         const all = lRes.data.data || []
-        setStats({
-          total: all.length,
-          pending: all.filter(l => l.status === 'pending' || l.status === 'menunggu').length,
-          diproses: all.filter(l => l.status === 'diproses').length,
-          selesai: all.filter(l => l.status === 'selesai').length,
-        })
+        const stats = await dashboardApi.getStats()
+        setStats(stats.data.data.counts)
         setLaporan(all.slice(0, 6))
         setUsers((uRes.data.data || []).slice(0, 5))
         setKategori(kRes.data.data || [])
+        setActivityChart(stats.data.data.charts.category_reports)
+        setPercentageData(stats.data.data.charts.category_percentage)
       } catch (e) {
         // Use demo data on error
         setStats({ total: 248, pending: 34, diproses: 67, selesai: 147 })
@@ -48,6 +52,9 @@ export default function AdminDashboard() {
       }
     }
     load()
+    if (user.role !== 'admin') {
+      router.push('/dashboard')
+    }
   }, [])
 
   const chartData = kategori.slice(0, 6).map(k => ({
@@ -66,10 +73,10 @@ export default function AdminDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard icon={FileText}    label="Total laporan"    value={stats.total}    change="12% bulan ini"  iconBg="bg-teal-50"  iconColor="text-teal-600" />
-        <StatCard icon={Clock}       label="Menunggu"         value={stats.pending}  change="5 dari kemarin" changeType="down" iconBg="bg-amber-50" iconColor="text-amber-600" />
-        <StatCard icon={Loader}      label="Diproses"         value={stats.diproses} change="8 baru hari ini" iconBg="bg-blue-50"  iconColor="text-blue-600" />
-        <StatCard icon={CheckCircle} label="Selesai"          value={stats.selesai}  change="94% dari total"  iconBg="bg-teal-50"  iconColor="text-teal-600" />
+        <StatCard icon={FileText} label="Total laporan" value={stats?.total_laporan || 0} iconBg="bg-teal-50" iconColor="text-teal-600" />
+        <StatCard icon={Clock} label="Menunggu" value={stats?.laporan_pending || 0} changeType="down" iconBg="bg-amber-50" iconColor="text-amber-600" />
+        <StatCard icon={Loader} label="Diproses" value={stats?.laporan_diproses || 0} iconBg="bg-blue-50" iconColor="text-blue-600" />
+        <StatCard icon={CheckCircle} label="Selesai" value={stats?.laporan_selesai || 0} iconBg="bg-teal-50" iconColor="text-teal-600" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
@@ -83,14 +90,14 @@ export default function AdminDashboard() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={chartData} barSize={20}>
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#888780' }} axisLine={false} tickLine={false} />
+            <BarChart data={activityChart} barSize={20}>
+              <XAxis dataKey="kategori" tick={{ fontSize: 11, fill: '#888780' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#888780' }} axisLine={false} tickLine={false} width={28} />
               <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 10, border: '0.5px solid #D3D1C7', boxShadow: 'none' }}
                 cursor={{ fill: '#F1EFE8' }}
               />
-              <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="jumlah_laporan" radius={[6, 6, 0, 0]}>
                 {chartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
               </Bar>
             </BarChart>
@@ -103,19 +110,25 @@ export default function AdminDashboard() {
             <h3 className="text-sm font-medium text-ink-900">Kategori</h3>
             <Link href="/dashboard/kategori" className="text-xs text-teal-600 hover:underline">Kelola</Link>
           </div>
+          {percentageData?.length === 0? 
+            <>
+            no data
+            </> :
           <div className="flex flex-col gap-2">
-            {(kategori.length ? kategori : DEMO_KATEGORI).slice(0, 5).map((k, i) => (
+            {percentageData?.map((k, i) => (
               <div key={k.id || i} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-teal-400 opacity-70" />
-                  <span className="text-xs text-ink-700">{k.nama_kategori || k.namaKategori}</span>
+                  <span className="text-xs text-ink-700">{k?.kategori}</span>
                 </div>
                 <div className="w-16 h-1.5 bg-ink-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-teal-400 rounded-full" style={{ width: `${Math.max(15, 90 - i * 15)}%` }} />
+                  <div className="h-full bg-teal-400 rounded-full" style={{ width: k?.persentase }} />
                 </div>
               </div>
             ))}
-          </div>
+          </div>   
+          }
+         
           <Link href="/dashboard/kategori" className="mt-4 text-xs text-teal-600 hover:underline flex items-center gap-1">
             <Tag size={12} /> Tambah kategori
           </Link>

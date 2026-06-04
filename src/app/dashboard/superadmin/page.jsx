@@ -3,23 +3,15 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { StatCard, RoleBadge, Avatar, Modal, Spinner, ConfirmDialog, PageHeader } from '@/components/ui'
-import { usersApi, laporanApi, kategoriApi, superAdminStatsApi } from '@/lib/api'
+import { usersApi, laporanApi, kategoriApi, superAdminStatsApi, dashboardApi } from '@/lib/api'
 import { Shield, Users, FileText, CheckCircle, Plus, Pencil, Trash2, Activity, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
-
-const ACTIVITY_CHART = [
-  { day: 'Sen', laporan: 18, selesai: 12 },
-  { day: 'Sel', laporan: 24, selesai: 18 },
-  { day: 'Rab', laporan: 15, selesai: 10 },
-  { day: 'Kam', laporan: 30, selesai: 22 },
-  { day: 'Jum', laporan: 28, selesai: 20 },
-  { day: 'Sab', laporan: 12, selesai: 8 },
-  { day: 'Min', laporan: 20, selesai: 15 },
-]
+import { useAuth } from '@/context/AuthContext'
+import { useRouter } from 'next/navigation'
 
 const PERM = {
   user: ['Buat laporan', 'Komentar', 'Lihat laporan'],
@@ -28,7 +20,9 @@ const PERM = {
 }
 
 export default function SuperAdminDashboard() {
-  const [stats, setStats] = useState({ totalAdmin: 0, totalLaporan: 248, selesai: 147, totalUser: 5621 })
+  const { user } = useAuth()
+  const router = useRouter()
+  const [stats, setStats] = useState({})
   const [logs, setLogs] = useState([]);
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
@@ -36,9 +30,13 @@ export default function SuperAdminDashboard() {
   const [form, setForm] = useState({ username: '', email: '', password: '', role: 'admin' })
   const [saving, setSaving] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null })
+  const [activityChart, setActivityChart] = useState([]);
 
   useEffect(() => {
     loadData()
+    if(user.role !== 'super_admin'){
+      router.push('/dashboard')
+    }
   }, [])
 
   async function loadData() {
@@ -46,11 +44,13 @@ export default function SuperAdminDashboard() {
     try {
       const res = await usersApi.getAll()
       const all = res.data.data || []
+      const stats = await dashboardApi.getStats()
       const adminList = all.filter(u => u.role === 'admin' || u.role === 'super_admin')
       const logData = await superAdminStatsApi.getActivityLog()
       setAdmins(adminList)
       setLogs(logData ? logData.data.data : [])
-      setStats(s => ({ ...s, totalAdmin: adminList.length, totalUser: all.filter(u => u.role === 'user').length }))
+      setStats(stats.data.data.counts)
+      setActivityChart(stats.data.data.charts.weekly_activity)
     } catch {
       setAdmins(DEMO_ADMINS)
       setStats({ totalAdmin: 3, totalLaporan: 1248, selesai: 847, totalUser: 5621 })
@@ -108,10 +108,10 @@ export default function SuperAdminDashboard() {
     <DashboardLayout title="Dasbor Super Admin" subtitle="Kelola seluruh sistem AduLink">
       {/* Stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard icon={Shield} label="Total admin" value={stats.totalAdmin} iconBg="bg-purple-100" iconColor="text-purple-600" />
-        <StatCard icon={FileText} label="Total laporan" value={stats.totalLaporan} change="12% bulan ini" iconBg="bg-teal-50" iconColor="text-teal-600" />
-        <StatCard icon={CheckCircle} label="Laporan selesai" value={stats.selesai} change="94% tingkat selesai" iconBg="bg-blue-50" iconColor="text-blue-600" />
-        <StatCard icon={Users} label="Total pengguna" value={stats.totalUser} change="128 bulan ini" iconBg="bg-amber-50" iconColor="text-amber-600" />
+        <StatCard icon={Shield} label="Total admin" value={stats?.total_akun_admin || '-'} iconBg="bg-purple-100" iconColor="text-purple-600" />
+        <StatCard icon={FileText} label="Total laporan" value={stats?.total_laporan || '-'} iconBg="bg-teal-50" iconColor="text-teal-600" />
+        <StatCard icon={CheckCircle} label="Laporan selesai" value={stats?.laporan_selesai || '-'} iconBg="bg-blue-50" iconColor="text-blue-600" />
+        <StatCard icon={Users} label="Total pengguna" value={stats?.total_user || '-'} iconBg="bg-amber-50" iconColor="text-amber-600" />
       </div>
 
       {/* Chart + Permissions */}
@@ -125,7 +125,7 @@ export default function SuperAdminDashboard() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={150}>
-            <AreaChart data={ACTIVITY_CHART}>
+            <AreaChart data={activityChart}>
               <defs>
                 <linearGradient id="gTeal" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#1D9E75" stopOpacity={0.2} />
@@ -139,8 +139,8 @@ export default function SuperAdminDashboard() {
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#888780' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 10, fill: '#888780' }} axisLine={false} tickLine={false} width={24} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '0.5px solid #D3D1C7', boxShadow: 'none' }} />
-              <Area type="monotone" dataKey="laporan" stroke="#1D9E75" strokeWidth={2} fill="url(#gTeal)" dot={false} />
-              <Area type="monotone" dataKey="selesai" stroke="#378ADD" strokeWidth={2} fill="url(#gBlue)" dot={false} />
+              <Area type="monotone" dataKey="jumlah_laporan" stroke="#1D9E75" strokeWidth={2} fill="url(#gTeal)" dot={false} />
+              <Area type="monotone" dataKey="laporan_selesai" stroke="#378ADD" strokeWidth={2} fill="url(#gBlue)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>

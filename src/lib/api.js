@@ -36,7 +36,7 @@ export const authApi = {
 }
 
 export const publicApi = {
-  tats: () => api.get('/public/stats'),
+  getStats: () => api.get('/public/stats'),
 }
 
 export const profileApi = {
@@ -93,6 +93,10 @@ export const notificationApi = {
   getAll: (params) => api.get('/notification', { params }),
   markRead: (id) => api.patch(`/notification/${id}/read`),
   markAllRead: () => api.patch('/notification/read-all'),
+}
+
+export const dashboardApi = {
+  getStats: () => api.get('/dashboard/stats'),
 }
 
 export const superAdminStatsApi = {
