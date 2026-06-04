@@ -36,7 +36,7 @@ export const authApi = {
 }
 
 export const publicApi = {
-  getStats: () => api.get('/public/stats'),
+  tats: () => api.get('/public/stats'),
 }
 
 export const profileApi = {
@@ -86,6 +86,13 @@ export const balasApi = {
   getByKomentar: (komentar_id) => api.get('/balas-komentar', { params: { komentar_id } }),
   create: (data) => api.post('/balas-komentar', data),
   delete: (id) => api.delete(`/balas-komentar/${id}`),
+}
+
+// ─── NOTIFIKASI ──────────────────────────────────────────────────────────────
+export const notificationApi = {
+  getAll: (params) => api.get('/notification', { params }),
+  markRead: (id) => api.patch(`/notification/${id}/read`),
+  markAllRead: () => api.patch('/notification/read-all'),
 }
 
 export const superAdminStatsApi = {
