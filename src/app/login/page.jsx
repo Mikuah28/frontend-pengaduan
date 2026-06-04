@@ -1,16 +1,30 @@
 'use client'
 // src/app/login/page.jsx
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { Flag, Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react'
 import { Spinner } from '@/components/ui'
+import { publicApi } from '@/lib/api'
 
 export default function LoginPage() {
   const { login } = useAuth()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [stats, setStats] = useState({});
+
+  async function loadStats() {
+    try {
+      const res = await publicApi.getStats()
+      setStats(res.data.data || {})
+
+    } catch { setStats({}) }
+  }
+
+  useEffect(() => {
+    loadStats()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -45,9 +59,9 @@ export default function LoginPage() {
 
           <div className="mt-10 flex flex-col gap-3">
             {[
-              { label: '1.248 laporan ditangani', sub: 'Sejak platform diluncurkan' },
-              { label: '94% tingkat penyelesaian', sub: 'Rata-rata 3 hari respons' },
-              { label: '5.621 pengguna aktif', sub: 'Bergabung dan buat perubahan' },
+              { label: `${stats?.laporan_ditangani || '-'} laporan ditangani`, sub: 'Sejak platform diluncurkan' },
+              { label: `${stats?.persentase_penyelesaian || '-'} tingkat penyelesaian`, sub: 'Rata-rata 3 hari respons' },
+              { label: `${stats?.total_user || '-gi'} pengguna aktif`, sub: 'Bergabung dan buat perubahan' },
             ].map(({ label, sub }) => (
               <div key={label} className="flex items-start gap-3 bg-white/5 rounded-xl px-4 py-3">
                 <CheckCircle size={16} className="text-teal-400 mt-0.5 shrink-0" />

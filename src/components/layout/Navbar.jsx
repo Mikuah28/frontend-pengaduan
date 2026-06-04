@@ -8,7 +8,7 @@ import clsx from 'clsx'
 
 const NAV_LINKS = [
   { label: 'Beranda', href: '/' },
-  { label: 'Laporan', href: '/?tab=laporan' },
+  { label: 'Laporan', href: '/laporanku' },
   { label: 'Statistik', href: '/?tab=statistik' },
 ]
 

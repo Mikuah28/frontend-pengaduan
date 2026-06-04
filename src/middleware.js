@@ -22,11 +22,6 @@ export function middleware(request) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // Super admin route — only super_admin
-  if (SUPER_ROUTES.some(r => pathname.startsWith(r)) && role !== 'super_admin') {
-    return NextResponse.redirect(new URL('/dashboard/admin', request.url))
-  }
-
   return NextResponse.next()
 }
 

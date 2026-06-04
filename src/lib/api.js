@@ -35,6 +35,10 @@ export const authApi = {
   register: (data) => api.post('/auth/register', data),
 }
 
+export const publicApi = {
+  getStats: () => api.get('/public/stats'),
+}
+
 export const profileApi = {
   getMe: () => api.get('/profile/me'),
   update: (data) => api.put('/profile', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
@@ -53,7 +57,7 @@ export const usersApi = {
 export const laporanApi = {
   getAll: (params) => api.get('/laporan', { params }),
   getById: (id) => api.get(`/laporan/${id}`),
-  getMyLaporan: () => api.get('/laporan/user/me'),
+  getMyLaporan: (params) => api.get('/laporan/user/me', { params }),
   create: (data) => api.post('/laporan', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (id, data) => api.put(`/laporan/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   updateStatus: (id, status) => api.patch(`/laporan/${id}/status`, { status }),
@@ -63,6 +67,7 @@ export const laporanApi = {
 // ─── KATEGORI ────────────────────────────────────────────────────────────────
 export const kategoriApi = {
   getAll: () => api.get('/kategori'),
+  getTrending: () => api.get('/kategori/trending'),
   getById: (id) => api.get(`/kategori/${id}`),
   create: (data) => api.post('/kategori', data),
   update: (id, data) => api.put(`/kategori/${id}`, data),
@@ -81,6 +86,10 @@ export const balasApi = {
   getByKomentar: (komentar_id) => api.get('/balas-komentar', { params: { komentar_id } }),
   create: (data) => api.post('/balas-komentar', data),
   delete: (id) => api.delete(`/balas-komentar/${id}`),
+}
+
+export const superAdminStatsApi = {
+  getActivityLog: () => api.get('/activity-logs'),
 }
 
 export default api

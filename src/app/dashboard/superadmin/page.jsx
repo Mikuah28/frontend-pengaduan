@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { StatCard, RoleBadge, Avatar, Modal, Spinner, ConfirmDialog, PageHeader } from '@/components/ui'
-import { usersApi, laporanApi, kategoriApi } from '@/lib/api'
+import { usersApi, laporanApi, kategoriApi, superAdminStatsApi } from '@/lib/api'
 import { Shield, Users, FileText, CheckCircle, Plus, Pencil, Trash2, Activity, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { formatDistanceToNow } from 'date-fns'
+import { id as idLocale } from 'date-fns/locale'
 
 const ACTIVITY_CHART = [
   { day: 'Sen', laporan: 18, selesai: 12 },
@@ -20,13 +22,14 @@ const ACTIVITY_CHART = [
 ]
 
 const PERM = {
-  user:        ['Buat laporan', 'Komentar', 'Lihat laporan'],
-  admin:       ['Buat laporan', 'Komentar', 'Lihat laporan', 'Kelola pengguna', 'Ubah status'],
+  user: ['Buat laporan', 'Komentar', 'Lihat laporan'],
+  admin: ['Buat laporan', 'Komentar', 'Lihat laporan', 'Kelola pengguna', 'Ubah status'],
   super_admin: ['Buat laporan', 'Komentar', 'Lihat laporan', 'Kelola pengguna', 'Kelola admin', 'Semua akses'],
 }
 
 export default function SuperAdminDashboard() {
   const [stats, setStats] = useState({ totalAdmin: 0, totalLaporan: 248, selesai: 147, totalUser: 5621 })
+  const [logs, setLogs] = useState([]);
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState({ open: false, mode: 'create', data: null })
@@ -44,7 +47,9 @@ export default function SuperAdminDashboard() {
       const res = await usersApi.getAll()
       const all = res.data.data || []
       const adminList = all.filter(u => u.role === 'admin' || u.role === 'super_admin')
+      const logData = await superAdminStatsApi.getActivityLog()
       setAdmins(adminList)
+      setLogs(logData ? logData.data.data : [])
       setStats(s => ({ ...s, totalAdmin: adminList.length, totalUser: all.filter(u => u.role === 'user').length }))
     } catch {
       setAdmins(DEMO_ADMINS)
@@ -94,14 +99,19 @@ export default function SuperAdminDashboard() {
     }
   }
 
+  const timeAgo = (date) => {
+    try { return formatDistanceToNow(new Date(date), { addSuffix: true, locale: idLocale }) }
+    catch { return '—' }
+  }
+
   return (
     <DashboardLayout title="Dasbor Super Admin" subtitle="Kelola seluruh sistem AduLink">
       {/* Stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        <StatCard icon={Shield}       label="Total admin"      value={stats.totalAdmin}    iconBg="bg-purple-100" iconColor="text-purple-600" />
-        <StatCard icon={FileText}     label="Total laporan"    value={stats.totalLaporan}  change="12% bulan ini"  iconBg="bg-teal-50"  iconColor="text-teal-600" />
-        <StatCard icon={CheckCircle}  label="Laporan selesai"  value={stats.selesai}       change="94% tingkat selesai" iconBg="bg-blue-50" iconColor="text-blue-600" />
-        <StatCard icon={Users}        label="Total pengguna"   value={stats.totalUser}     change="128 bulan ini" iconBg="bg-amber-50" iconColor="text-amber-600" />
+        <StatCard icon={Shield} label="Total admin" value={stats.totalAdmin} iconBg="bg-purple-100" iconColor="text-purple-600" />
+        <StatCard icon={FileText} label="Total laporan" value={stats.totalLaporan} change="12% bulan ini" iconBg="bg-teal-50" iconColor="text-teal-600" />
+        <StatCard icon={CheckCircle} label="Laporan selesai" value={stats.selesai} change="94% tingkat selesai" iconBg="bg-blue-50" iconColor="text-blue-600" />
+        <StatCard icon={Users} label="Total pengguna" value={stats.totalUser} change="128 bulan ini" iconBg="bg-amber-50" iconColor="text-amber-600" />
       </div>
 
       {/* Chart + Permissions */}
@@ -130,7 +140,7 @@ export default function SuperAdminDashboard() {
               <YAxis tick={{ fontSize: 10, fill: '#888780' }} axisLine={false} tickLine={false} width={24} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '0.5px solid #D3D1C7', boxShadow: 'none' }} />
               <Area type="monotone" dataKey="laporan" stroke="#1D9E75" strokeWidth={2} fill="url(#gTeal)" dot={false} />
-              <Area type="monotone" dataKey="selesai"  stroke="#378ADD" strokeWidth={2} fill="url(#gBlue)" dot={false} />
+              <Area type="monotone" dataKey="selesai" stroke="#378ADD" strokeWidth={2} fill="url(#gBlue)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -215,11 +225,11 @@ export default function SuperAdminDashboard() {
           <Activity size={14} className="text-ink-400" />
         </div>
         <div className="flex flex-col gap-0">
-          {ACTIVITY_LOG.map((a, i) => (
+          {logs.map((a, i) => (
             <div key={i} className="flex items-start gap-3 py-2.5 border-b border-ink-50 last:border-0">
-              <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${a.color}`} />
-              <div className="flex-1 text-xs text-ink-700" dangerouslySetInnerHTML={{ __html: a.text }} />
-              <span className="text-[10px] text-ink-400 shrink-0">{a.time}</span>
+              <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 bg-teal-400`} />
+              <div className="flex-1 text-xs text-ink-700" dangerouslySetInnerHTML={{ __html: a.activity }} />
+              <span className="text-[10px] text-ink-400 shrink-0">{timeAgo(a?.created_at)}</span>
             </div>
           ))}
         </div>

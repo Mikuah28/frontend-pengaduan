@@ -7,7 +7,7 @@ import { laporanApi, kategoriApi, komentarApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import {
   Heart, MessageCircle, Share2, Bookmark, MapPin, Clock,
-  TrendingUp, Plus, Filter, X, Flag, ChevronRight, Search
+  Filter, X, Flag, ChevronRight, Search
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
@@ -18,12 +18,11 @@ import { useRouter } from 'next/navigation'
 
 const UPLOAD_URL = process.env.NEXT_PUBLIC_UPLOAD_URL || 'http://localhost:5000/uploads/images'
 
-export default function HomePage() {
+export default function LaporanKu() {
   const { user } = useAuth()
   const router = useRouter()
   const [laporan, setLaporan] = useState([])
   const [kategori, setKategori] = useState([])
-  const [trending, setTrending] = useState([])
   const [loading, setLoading] = useState(true)
   const [liked, setLiked] = useState({})
   const [saved, setSaved] = useState({})
@@ -44,16 +43,13 @@ export default function HomePage() {
       const res = await kategoriApi.getAll()
       setKategori(res.data.data || [])
 
-      const trendingRes = await kategoriApi.getTrending()
-      setTrending(trendingRes.data.data || [])
-
     } catch { setKategori(DEMO_KAT) }
   }
 
   async function loadLaporan() {
     setLoading(true)
     try {
-      const res = await laporanApi.getAll({ ...filter, limit: 10 })
+      const res = await laporanApi.getMyLaporan({ ...filter, limit: 10 })
       setLaporan(res.data.data || [])
       setMeta(res.data.meta || { total: 0 })
     } catch {
@@ -94,54 +90,6 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-ink-50">
       <Navbar />
-
-      {/* Hero */}
-      <div className="bg-ink-900 px-4 py-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-            <span className="text-xs text-teal-300 font-medium">Platform Pengaduan Resmi</span>
-          </div>
-          <h1 className="font-display font-bold text-3xl text-white mb-2 leading-tight">
-            Suara Anda,<br />
-            <span className="text-teal-400">Perubahan Nyata</span>
-          </h1>
-          <p className="text-sm text-white/50 mb-5 max-w-md">
-            Laporkan masalah di sekitar Anda. Setiap laporan ditangani dengan serius.
-          </p>
-
-          {/* Search */}
-          <div className="flex gap-2 max-w-xl">
-            <div className="relative flex-1">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
-              <input
-                className="w-full bg-white/10 border border-white/15 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder-white/40 outline-none focus:border-teal-400 focus:bg-white/15 transition-all"
-                placeholder="Cari laporan atau lokasi..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
-            <Link href={user ? '/laporan/buat' : '/login'} className="btn-primary shrink-0">
-              <Plus size={15} /> Lapor
-            </Link>
-          </div>
-
-          {/* Quick stats */}
-          <div className="flex items-center gap-5 mt-5 pt-5 border-t border-white/8">
-            {[
-              { label: 'Total laporan', value: meta.total || '1.248' },
-              { label: 'Selesai', value: '94%' },
-              { label: 'Respons', value: '3 hari' },
-            ].map(({ label, value }) => (
-              <div key={label}>
-                <div className="font-display font-bold text-xl text-white">{value}</div>
-                <div className="text-xs text-white/40 mt-0.5">{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Main content */}
       <div className="max-w-5xl mx-auto px-4 py-5 grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Feed */}
@@ -168,24 +116,6 @@ export default function HomePage() {
               </button>
             )}
           </div>
-
-          {/* Compose box */}
-          {user && (
-            <Link href="/laporan/buat" className="bg-white rounded-2xl border border-ink-100/60 p-4 flex items-center gap-3 hover:border-teal-300 transition-all group">
-              {user?.foto_profil ? (
-                <img src={`${UPLOAD_URL}/${user?.foto_profil}`} alt={user?.username} className='size-7 rounded-full object-cover object-cover'></img>
-              ) : (
-                <Avatar name={user.username} size="sm" />
-              )}
-
-              <div className="flex-1 bg-ink-50 rounded-xl px-4 py-2.5 text-xs text-ink-400 group-hover:bg-teal-50 group-hover:text-teal-600 transition-all">
-                Laporkan masalah di sekitar Anda...
-              </div>
-              <div className="w-8 h-8 rounded-xl bg-teal-400 flex items-center justify-center">
-                <Plus size={15} className="text-white" />
-              </div>
-            </Link>
-          )}
 
           {/* Post list */}
           {loading ? (
@@ -303,28 +233,7 @@ export default function HomePage() {
                 >
                   <span className="text-sm">{getEmoji(k.nama_kategori || k.namaKategori)}</span>
                   <span className="flex-1 text-left">{k.nama_kategori || k.namaKategori}</span>
-                  <span className="text-[10px] text-ink-400">{k?._count?.laporan || 0}</span>
                 </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Trending */}
-          <div className="bg-white rounded-2xl border border-ink-100/60 p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp size={13} className="text-teal-500" />
-              <span className="text-xs font-medium text-ink-700">Trending hari ini</span>
-            </div>
-            <div className="flex flex-col gap-0">
-              {trending.map((t, i) => (
-                <div key={i} className="flex items-start gap-3 py-2.5 border-b border-ink-50 last:border-0">
-                  <span className="text-sm font-display font-bold text-ink-200 w-4 shrink-0">{i + 1}</span>
-                  <div>
-                    <div className="text-[10px] text-ink-400">{t.nama_kategori}</div>
-                    <div className="text-xs font-medium text-ink-800 mt-0.5">{t.nama_kategori}</div>
-                    <div className="text-[10px] text-ink-400 mt-0.5">{t?._count?.laporan || 0} laporan</div>
-                  </div>
-                </div>
               ))}
             </div>
           </div>
@@ -345,11 +254,6 @@ export default function HomePage() {
   )
 }
 
-const TRENDING = [
-  { tag: '#JalanRusak', kat: 'Infrastruktur · Trending', count: 412 },
-  { tag: '#SampahMenumpuk', kat: 'Kebersihan', count: 287 },
-  { tag: '#BanjirJakarta', kat: 'Bencana Alam', count: 198 },
-]
 const DEMO_KAT = [
   { id: 1, namaKategori: 'Infrastruktur Jalan' },
   { id: 2, namaKategori: 'Kebersihan & Sampah' },
