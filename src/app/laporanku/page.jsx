@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import { StatusBadge, Avatar, Spinner, EmptyState } from '@/components/ui'
-import { laporanApi, kategoriApi, komentarApi } from '@/lib/api'
+import { laporanApi, kategoriApi, komentarApi, likeApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import {
   Heart, MessageCircle, Share2, Bookmark, MapPin, Clock,
@@ -43,11 +43,13 @@ export default function LaporanKu() {
       const res = await kategoriApi.getAll()
       setKategori(res.data.data || [])
 
-    } catch { setKategori(DEMO_KAT) }
+    } catch { setKategori([]) }
   }
 
-  async function loadLaporan() {
-    setLoading(true)
+  async function loadLaporan(isRefresh = true) {
+    if (isRefresh) {
+      setLoading(true)
+    }
     try {
       const res = await laporanApi.getMyLaporan({ ...filter, limit: 10 })
       setLaporan(res.data.data || [])
@@ -60,10 +62,10 @@ export default function LaporanKu() {
     }
   }
 
-  const toggleLike = (id) => {
-    if (!user) { toast.error('Login untuk menyukai laporan'); return }
-    setLiked(l => ({ ...l, [id]: !l[id] }))
-  }
+  // const toggleLike = (id) => {
+  //   if (!user) { toast.error('Login untuk menyukai laporan'); return }
+  //   setLiked(l => ({ ...l, [id]: !l[id] }))
+  // }
   const toggleSave = (id) => {
     if (!user) { toast.error('Login untuk menyimpan laporan'); return }
     setSaved(s => ({ ...s, [id]: !s[id] }))
@@ -85,6 +87,13 @@ export default function LaporanKu() {
   const getEmoji = (name = '') => {
     const key = Object.keys(EMOJI).find(k => name.includes(k))
     return EMOJI[key] || '📋'
+  }
+
+  async function handleLike(id) {
+    const res = await likeApi.toggleLike(id)
+    if (res.data.ok) {
+      loadLaporan(false)
+    }
   }
 
   return (
@@ -184,12 +193,12 @@ export default function LaporanKu() {
                 <div className="px-4 py-3 border-t border-ink-50 flex items-center gap-1">
                   <button
                     className={clsx('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all',
-                      liked[l.id] ? 'bg-teal-50 text-teal-700' : 'text-ink-500 hover:bg-ink-50'
+                      l?.is_liked ? 'bg-teal-50 text-teal-700' : 'text-ink-500 hover:bg-ink-50'
                     )}
-                    onClick={() => toggleLike(l.id)}
+                    onClick={() => handleLike(l.id)}
                   >
-                    <Heart size={14} className={liked[l.id] ? 'fill-teal-500' : ''} />
-                    <span>{(l._count?.komentar || 0) + (liked[l.id] ? 1 : 0)}</span>
+                    <Heart size={14} className={l?.is_liked ? 'fill-teal-500' : ''} />
+                    <span>{l._count?.likes}</span>
                   </button>
                   <Link href={`/laporan/${l.id}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-ink-500 hover:bg-ink-50 transition-all">
                     <MessageCircle size={14} />

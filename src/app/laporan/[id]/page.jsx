@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import { Avatar, StatusBadge, Spinner, EmptyState } from '@/components/ui'
-import { laporanApi, komentarApi, balasApi } from '@/lib/api'
+import { laporanApi, komentarApi, balasApi, likeApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import {
   Heart, MessageCircle, Share2, Bookmark, MapPin, Clock,
@@ -27,7 +27,7 @@ export default function DetailLaporan() {
   const [laporan, setLaporan] = useState(null)
   const [komentar, setKomentar] = useState([])
   const [loading, setLoading] = useState(true)
-  const [liked, setLiked] = useState(false)
+  const liked = laporan?.is_liked
   const [saved, setSaved] = useState(false)
   const [votes, setVotes] = useState({})   // { id: 'up'|'dn'|null }
   const [replyTo, setReplyTo] = useState(null)
@@ -38,8 +38,10 @@ export default function DetailLaporan() {
 
   useEffect(() => { load() }, [id])
 
-  async function load() {
-    setLoading(true)
+  async function load(refresh = true) {
+    if (refresh) {
+      setLoading(true)
+    }
     try {
       const [lRes, kRes] = await Promise.all([
         laporanApi.getById(id),
@@ -52,6 +54,13 @@ export default function DetailLaporan() {
       setKomentar(DEMO_KOMENTAR)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleLike(id) {
+    const res = await likeApi.toggleLike(id)
+    if (res.data.ok) {
+      load(false)
     }
   }
 
@@ -209,13 +218,13 @@ export default function DetailLaporan() {
                 className={clsx('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all',
                   liked ? 'bg-teal-50 text-teal-700' : 'text-ink-500 hover:bg-ink-50'
                 )}
-                onClick={() => { if (!user) { toast.error('Login untuk menyukai'); return } setLiked(v => !v) }}
+                onClick={() => { if (!user) { toast.error('Login untuk menyukai'); return } handleLike(laporan?.id) }}
               >
                 <Heart size={14} className={liked ? 'fill-teal-500' : ''} />
-                <span>{24 + (liked ? 1 : 0)}</span>
+                <span>{laporan?._count?.likes}</span>
               </button>
               <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-ink-500 hover:bg-ink-50 transition-all">
-                <MessageCircle size={14} /> {komentar.length}
+                <MessageCircle size={14} /> {laporan?._count?.komentar}
               </button>
               <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-ink-500 hover:bg-ink-50 transition-all"
                 onClick={() => { navigator.clipboard?.writeText(window.location.href); toast.success('Link disalin') }}>
@@ -304,7 +313,7 @@ export default function DetailLaporan() {
 
                         {/* Vote + Reply */}
                         <div className="flex items-center gap-2 mt-2">
-                          <button
+                          {/* <button
                             className={clsx('flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border transition-all',
                               votes[c.id] === 'up' ? 'bg-teal-50 text-teal-700 border-teal-200' : 'text-ink-400 border-ink-100 hover:border-teal-200 hover:text-teal-600'
                             )}
@@ -321,7 +330,7 @@ export default function DetailLaporan() {
                           >
                             <ThumbsDown size={11} className={votes[c.id] === 'dn' ? 'fill-rose-500' : ''} />
                             <span>{votes[c.id] === 'dn' ? 1 : 0}</span>
-                          </button>
+                          </button> */}
                           <button
                             className="flex items-center gap-1 text-[11px] text-ink-400 hover:text-teal-600 px-2 py-1 rounded-lg hover:bg-teal-50 transition-all"
                             onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}
@@ -342,7 +351,14 @@ export default function DetailLaporan() {
                         {/* Reply compose */}
                         {replyTo === c.id && (
                           <div className="mt-2 flex items-start gap-2">
-                            <Avatar name={user?.username || 'G'} size="sm" />
+                            {user?.foto_profil ?
+                              (
+                                <img src={`${UPLOAD_URL}/${user?.foto_profil}`} alt={user?.username} className="size-7 rounded-full object-cover" />
+                              ) :
+                              (
+                                <Avatar name={user?.username || 'G'} size="sm" />
+                              )
+                            }
                             <div className="flex-1">
                               <textarea
                                 className="w-full text-xs border border-ink-100 rounded-xl px-3 py-2 resize-none outline-none focus:border-teal-400 transition-all bg-ink-50"
@@ -366,11 +382,17 @@ export default function DetailLaporan() {
                         {expanded[c.id] && c.balasKomentar?.map((r, j) => (
                           <div key={r.id || j} className="mt-2 pl-4 border-l-2 border-teal-100">
                             <div className="flex items-start gap-2">
-                              <Avatar name="Admin" size="sm" color="blue" />
+                              {r.user?.foto_profil ?
+                                (
+                                  <img src={`${UPLOAD_URL}/${r.user?.foto_profil}`} alt={user?.user} className="size-7 rounded-full object-cover" />
+                                ) :
+                                (
+                                  <Avatar name={r.user?.username || 'G'} size="sm" />
+                                )
+                              }
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs font-medium text-ink-900">Admin</span>
-                                  <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 rounded-full">Admin</span>
+                                  <span className="text-xs font-medium text-ink-900">{r?.user?.username}</span>
                                   <span className="text-[10px] text-ink-400">{timeAgo(r.createdAt)}</span>
                                 </div>
                                 <p className="text-xs text-ink-600 mt-1 leading-relaxed">{r.balas_komentar || r.balasKomentar}</p>

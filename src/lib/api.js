@@ -56,6 +56,7 @@ export const usersApi = {
 // ─── LAPORAN ─────────────────────────────────────────────────────────────────
 export const laporanApi = {
   getAll: (params) => api.get('/laporan', { params }),
+  searchLaporan: (params) => api.get('/search/laporan', { params }),
   getById: (id) => api.get(`/laporan/${id}`),
   getMyLaporan: (params) => api.get('/laporan/user/me', { params }),
   create: (data) => api.post('/laporan', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
@@ -101,6 +102,10 @@ export const dashboardApi = {
 
 export const superAdminStatsApi = {
   getActivityLog: () => api.get('/activity-logs'),
+}
+
+export const likeApi = {
+  toggleLike: (id) => api.post(`/likes/${id}`, {}),
 }
 
 export default api

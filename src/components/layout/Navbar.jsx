@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui'
 
 const NAV_LINKS = [
   { label: 'Beranda', href: '/' },
-  { label: 'Laporan', href: '/laporanku' },
+  { label: 'Laporanku', href: '/laporanku' },
   { label: 'Statistik', href: '/?tab=statistik' },
 ]
 
