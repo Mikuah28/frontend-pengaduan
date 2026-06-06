@@ -136,15 +136,21 @@ export default function DetailLaporan() {
           <div className="bg-white rounded-2xl border border-ink-100/60 overflow-hidden">
             {/* Header */}
             <div className="flex items-start gap-3 p-4 pb-3">
-              {
-                laporan?.user?.foto_profil ?
-                  (
-                    <img src={`${UPLOAD_URL}/${laporan?.user?.foto_profil}`} alt={laporan?.user?.username} className="size-9 rounded-full object-cover" />
-                  ) :
-                  (
-                    <Avatar name={laporan?.user?.username || 'U'} size="md" />
-                  )
-              }
+              <Link href={laporan?.user?.id === user?.id ?
+                '/profile' :
+                `/user/${laporan.user.id}`
+              }>
+                {
+                  laporan?.user?.foto_profil ?
+                    (
+                      <img src={`${UPLOAD_URL}/${laporan?.user?.foto_profil}`} alt={laporan?.user?.username} className="size-9 rounded-full object-cover" />
+                    ) :
+                    (
+                      <Avatar name={laporan?.user?.username || 'U'} size="md" />
+                    )
+                }
+              </Link>
+
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-ink-900">{laporan?.user?.username || 'Pelapor'}</span>
@@ -230,7 +236,7 @@ export default function DetailLaporan() {
                 onClick={() => { navigator.clipboard?.writeText(window.location.href); toast.success('Link disalin') }}>
                 <Share2 size={14} />
               </button>
-              <button
+              {/* <button
                 className={clsx('ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all',
                   saved ? 'bg-blue-50 text-blue-700' : 'text-ink-500 hover:bg-ink-50'
                 )}
@@ -240,7 +246,7 @@ export default function DetailLaporan() {
               </button>
               <button className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-600 px-2 py-1.5 rounded-lg hover:bg-rose-50 transition-all">
                 <Flag size={13} />
-              </button>
+              </button> */}
             </div>
           </div>
 
@@ -250,10 +256,10 @@ export default function DetailLaporan() {
               <span className="text-sm font-medium text-ink-900">
                 Komentar <span className="text-ink-400 font-normal">({komentar.length})</span>
               </span>
-              <select className="text-[11px] border border-ink-100 rounded-lg px-2 py-1 bg-transparent outline-none text-ink-500">
+              {/* <select className="text-[11px] border border-ink-100 rounded-lg px-2 py-1 bg-transparent outline-none text-ink-500">
                 <option>Terbaru</option>
                 <option>Terpopuler</option>
-              </select>
+              </select> */}
             </div>
 
             {/* Comment compose */}
@@ -296,14 +302,19 @@ export default function DetailLaporan() {
                 {komentar.map((c, i) => (
                   <div key={c.id || i} className="px-4 py-3">
                     <div className="flex items-start gap-3">
-                      {c.user?.foto_profil ?
-                        (
-                          <img src={`${UPLOAD_URL}/${c.user?.foto_profil}`} alt={user?.user} className="size-7 rounded-full object-cover" />
-                        ) :
-                        (
-                          <Avatar name={c.user?.username || 'G'} size="sm" />
-                        )
-                      }
+                      <Link href={c?.user?.id === user?.id ?
+                        '/profile' :
+                        `user/${c.user.id}`
+                      }>
+                        {c.user?.foto_profil ?
+                          (
+                            <img src={`${UPLOAD_URL}/${c.user?.foto_profil}`} alt={user?.user} className="size-7 rounded-full object-cover" />
+                          ) :
+                          (
+                            <Avatar name={c.user?.username || 'G'} size="sm" />
+                          )
+                        }
+                      </Link>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-ink-900">{c.user?.username || 'Anonim'}</span>
@@ -382,14 +393,20 @@ export default function DetailLaporan() {
                         {expanded[c.id] && c.balasKomentar?.map((r, j) => (
                           <div key={r.id || j} className="mt-2 pl-4 border-l-2 border-teal-100">
                             <div className="flex items-start gap-2">
-                              {r.user?.foto_profil ?
-                                (
-                                  <img src={`${UPLOAD_URL}/${r.user?.foto_profil}`} alt={user?.user} className="size-7 rounded-full object-cover" />
-                                ) :
-                                (
-                                  <Avatar name={r.user?.username || 'G'} size="sm" />
-                                )
-                              }
+                              <Link href={r?.user?.id === user?.id ?
+                                '/profile' :
+                                `/user/${r.user.id}`
+                              }>
+                                {r.user?.foto_profil ?
+                                  (
+                                    <img src={`${UPLOAD_URL}/${r.user?.foto_profil}`} alt={user?.user} className="size-7 rounded-full object-cover" />
+                                  ) :
+                                  (
+                                    <Avatar name={r.user?.username || 'G'} size="sm" />
+                                  )
+                                }
+                              </Link>
+
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs font-medium text-ink-900">{r?.user?.username}</span>

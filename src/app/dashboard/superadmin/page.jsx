@@ -167,7 +167,7 @@ export default function SuperAdminDashboard() {
       </div>
 
       {/* Admin management */}
-      <div className="card mb-4">
+      {/* <div className="card mb-4">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-medium text-ink-900">Manajemen admin</h3>
@@ -216,7 +216,7 @@ export default function SuperAdminDashboard() {
             </table>
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Activity log */}
       <div className="card">

@@ -10,19 +10,19 @@ import {
 import clsx from 'clsx'
 
 const adminNav = [
-  { label: 'Dasbor',    href: '/dashboard/admin',     icon: LayoutDashboard },
-  { label: 'Laporan',   href: '/dashboard/laporan',   icon: FileText },
-  { label: 'Komentar',  href: '/dashboard/komentar',  icon: MessageSquare },
-  { label: 'Pengguna',  href: '/dashboard/users',     icon: Users },
-  { label: 'Kategori',  href: '/dashboard/kategori',  icon: Tag },
+  { label: 'Dasbor', href: '/dashboard/admin', icon: LayoutDashboard },
+  { label: 'Laporan', href: '/dashboard/laporan', icon: FileText },
+  { label: 'Komentar', href: '/dashboard/komentar', icon: MessageSquare },
+  { label: 'Pengguna', href: '/dashboard/users', icon: Users },
+  { label: 'Kategori', href: '/dashboard/kategori', icon: Tag },
 ]
 
 const superNav = [
-  { label: 'Dasbor',    href: '/dashboard/superadmin', icon: LayoutDashboard },
-  { label: 'Laporan',   href: '/dashboard/laporan',    icon: FileText },
-  { label: 'Admin',     href: '/dashboard/users',      icon: Shield },
-  { label: 'Kategori',  href: '/dashboard/kategori',   icon: Tag },
-  { label: 'Komentar',  href: '/dashboard/komentar',   icon: MessageSquare },
+  { label: 'Dasbor', href: '/dashboard/superadmin', icon: LayoutDashboard },
+  { label: 'Laporan', href: '/dashboard/laporan', icon: FileText },
+  { label: 'Komentar', href: '/dashboard/komentar', icon: MessageSquare },
+  { label: 'Pengguna', href: '/dashboard/users', icon: Users },
+  { label: 'Kategori', href: '/dashboard/kategori', icon: Tag },
 ]
 
 export default function Sidebar() {

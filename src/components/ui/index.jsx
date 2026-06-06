@@ -147,3 +147,56 @@ export function PageHeader({ title, description, action }) {
     </div>
   )
 }
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+export function Pagination({ currentPage, totalPages, onPageChange, className = '' }) {
+  if (!totalPages || totalPages <= 1) return null
+
+  const buildPages = () => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1)
+    const pages = [1]
+    if (currentPage > 3) pages.push('...')
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      pages.push(i)
+    }
+    if (currentPage < totalPages - 2) pages.push('...')
+    pages.push(totalPages)
+    return pages
+  }
+
+  return (
+    <div className={clsx('flex items-center justify-between mt-4 pt-3 border-t border-ink-50', className)}>
+      <span className="text-xs text-ink-400">
+        Halaman <span className="font-medium text-ink-700">{currentPage}</span> dari {totalPages}
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          className="w-7 h-7 rounded-lg text-xs transition-all disabled:opacity-30 hover:bg-ink-50 text-ink-600 disabled:cursor-not-allowed"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >‹</button>
+        {buildPages().map((p, i) =>
+          p === '...' ? (
+            <span key={`el-${i}`} className="w-7 h-7 flex items-center justify-center text-xs text-ink-400">…</span>
+          ) : (
+            <button
+              key={p}
+              className={clsx(
+                'w-7 h-7 rounded-lg text-xs font-medium transition-all',
+                currentPage === p
+                  ? 'bg-teal-400 text-white shadow-sm'
+                  : 'hover:bg-ink-50 text-ink-600'
+              )}
+              onClick={() => onPageChange(p)}
+            >{p}</button>
+          )
+        )}
+        <button
+          className="w-7 h-7 rounded-lg text-xs transition-all disabled:opacity-30 hover:bg-ink-50 text-ink-600 disabled:cursor-not-allowed"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages}
+        >›</button>
+      </div>
+    </div>
+  )
+}

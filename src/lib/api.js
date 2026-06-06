@@ -41,12 +41,13 @@ export const publicApi = {
 
 export const profileApi = {
   getMe: () => api.get('/profile/me'),
+  getUser: (id) => api.get(`/profile/${id}`),
   update: (data) => api.put('/profile', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
 }
 
 // ─── USERS ───────────────────────────────────────────────────────────────────
 export const usersApi = {
-  getAll: () => api.get('/users'),
+  getAll: (params) => api.get('/users', { params }),
   getById: (id) => api.get(`/users/${id}`),
   create: (data) => api.post('/users', data),
   update: (id, data) => api.put(`/users/${id}`, data),
@@ -57,6 +58,7 @@ export const usersApi = {
 export const laporanApi = {
   getAll: (params) => api.get('/laporan', { params }),
   searchLaporan: (params) => api.get('/search/laporan', { params }),
+  getLaporanByUser: (id, params) => api.get(`laporan/user/${id}`, {params}),
   getById: (id) => api.get(`/laporan/${id}`),
   getMyLaporan: (params) => api.get('/laporan/user/me', { params }),
   create: (data) => api.post('/laporan', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
@@ -77,6 +79,7 @@ export const kategoriApi = {
 
 // ─── KOMENTAR ────────────────────────────────────────────────────────────────
 export const komentarApi = {
+  getAll: (params) => api.get('/komentar/all', { params }),
   getByLaporan: (laporan_id) => api.get('/komentar', { params: { laporan_id } }),
   create: (data) => api.post('/komentar', data),
   delete: (id) => api.delete(`/komentar/${id}`),

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { StatusBadge, Avatar, Spinner, ConfirmDialog, Modal, PageHeader } from '@/components/ui'
 import { laporanApi, kategoriApi } from '@/lib/api'
-import { Plus, Trash2, Pencil, Eye, Filter, Upload, X } from 'lucide-react'
+import { Plus, Trash2, Pencil, Eye, Filter, Upload, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 
@@ -161,15 +161,26 @@ export default function LaporanPage() {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-ink-50">
+            <div className="flex items-center justify-between mt-4 p-3 card">
               <span className="text-xs text-ink-400">Halaman {filter.page} dari {meta.totalPages}</span>
               <div className="flex items-center gap-1">
-                {Array.from({ length: Math.min(meta.totalPages, 5) }, (_, i) => i + 1).map(p => (
-                  <button key={p}
-                    className={`w-7 h-7 rounded-lg text-xs transition-all ${filter.page === p ? 'bg-teal-400 text-white' : 'hover:bg-ink-50 text-ink-600'}`}
-                    onClick={() => setFilter(f => ({ ...f, page: p }))}
-                  >{p}</button>
-                ))}
+                <button
+                  disabled={filter.page === 1}
+                  className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === meta.page ? 'bg-teal-400 text-white' : 'hover:bg-ink-50 text-ink-600'}`}
+                  onClick={() => setFilter(f => ({ ...f, page: meta.page - 1 }))}
+                >
+                  <ChevronLeft />
+                </button>
+                <div className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center text-ink-600`}>
+                  {meta.page}
+                </div>
+                <button
+                  disabled={filter.page === meta.totalPages}
+                  className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === meta.page ? 'bg-teal-400 text-white' : 'hover:bg-ink-50 text-ink-600'}`}
+                  onClick={() => setFilter(f => ({ ...f, page: meta.page + 1 }))}
+                >
+                  <ChevronRight />
+                </button>
               </div>
             </div>
           </>
@@ -234,10 +245,10 @@ export default function LaporanPage() {
 
 const DEMO_LAPORAN = [
   { judul: 'Jalan berlubang Jl. Sudirman', deskripsi: 'Lubang besar membahayakan', lokasi: 'Kec. Menteng', status: 'diproses', user: { username: 'Budi S.' }, kategori: { namaKategori: 'Infrastruktur' } },
-  { judul: 'Lampu PJU mati Jl. Gatot',     deskripsi: '12 titik lampu mati',      lokasi: 'Kec. Senen',   status: 'pending',  user: { username: 'Siti R.' },  kategori: { namaKategori: 'Keamanan' } },
-  { judul: 'Sampah menumpuk Blok B',        deskripsi: '5 hari tidak diangkut',    lokasi: 'Kec. Gambir',  status: 'selesai',  user: { username: 'Ahmad H.' }, kategori: { namaKategori: 'Kebersihan' } },
-  { judul: 'Drainase tersumbat RW 05',      deskripsi: 'Air meluap saat hujan',    lokasi: 'Tanah Abang',  status: 'diproses', user: { username: 'Nina W.' },  kategori: { namaKategori: 'Infrastruktur' } },
-  { judul: 'Fasilitas taman rusak',         deskripsi: 'Bangku dan pagar rusak',   lokasi: 'Kec. Cikini',  status: 'ditolak',  user: { username: 'Dewi K.' },  kategori: { namaKategori: 'Pelayanan' } },
+  { judul: 'Lampu PJU mati Jl. Gatot', deskripsi: '12 titik lampu mati', lokasi: 'Kec. Senen', status: 'pending', user: { username: 'Siti R.' }, kategori: { namaKategori: 'Keamanan' } },
+  { judul: 'Sampah menumpuk Blok B', deskripsi: '5 hari tidak diangkut', lokasi: 'Kec. Gambir', status: 'selesai', user: { username: 'Ahmad H.' }, kategori: { namaKategori: 'Kebersihan' } },
+  { judul: 'Drainase tersumbat RW 05', deskripsi: 'Air meluap saat hujan', lokasi: 'Tanah Abang', status: 'diproses', user: { username: 'Nina W.' }, kategori: { namaKategori: 'Infrastruktur' } },
+  { judul: 'Fasilitas taman rusak', deskripsi: 'Bangku dan pagar rusak', lokasi: 'Kec. Cikini', status: 'ditolak', user: { username: 'Dewi K.' }, kategori: { namaKategori: 'Pelayanan' } },
 ]
 const DEMO_KAT = [
   { id: 1, namaKategori: 'Infrastruktur Jalan' },

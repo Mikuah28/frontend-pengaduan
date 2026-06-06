@@ -128,9 +128,9 @@ export default function ProfilePage() {
 
                         <div className="w-full mt-5 pt-5 border-t border-ink-100 grid grid-cols-3 gap-2">
                             {[
-                                { label: 'Laporan', value: '12' },
-                                { label: 'Diproses', value: '8' },
-                                { label: 'Selesai', value: '4' },
+                                { label: 'Laporan', value: user?.stats?.total_laporan },
+                                { label: 'Selesai', value: user?.stats?.laporan_selesai },
+                                { label: 'Komentar', value: user?.stats?.total_komentar },
                             ].map(({ label, value }) => (
                                 <div key={label} className="bg-ink-50 rounded-xl py-2 px-1">
                                     <div className="text-sm font-bold text-ink-900">{value}</div>
@@ -181,7 +181,7 @@ export default function ProfilePage() {
                     <div className="flex gap-0 border-b border-ink-100 mb-5">
                         {[
                             { id: 'info', label: 'Informasi Pribadi', icon: User },
-                            { id: 'password', label: 'Ubah Password', icon: Lock },
+                            // { id: 'password', label: 'Ubah Password', icon: Lock },
                         ].map(({ id, label, icon: Icon }) => (
                             <button
                                 key={id}

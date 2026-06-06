@@ -7,7 +7,8 @@ import { laporanApi, kategoriApi, komentarApi, likeApi } from '@/lib/api'
 import { useAuth } from '@/context/AuthContext'
 import {
   Heart, MessageCircle, Share2, Bookmark, MapPin, Clock,
-  Filter, X, Flag, ChevronRight, Search
+  Filter, X, Flag, ChevronRight, Search,
+  ChevronLeft
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
@@ -26,7 +27,7 @@ export default function LaporanKu() {
   const [loading, setLoading] = useState(true)
   const [liked, setLiked] = useState({})
   const [saved, setSaved] = useState({})
-  const [filter, setFilter] = useState({ status: '', kategori_id: '' })
+  const [filter, setFilter] = useState({ status: '', kategori_id: '', page: 1 })
   const [search, setSearch] = useState('')
   const [meta, setMeta] = useState({ total: 0 })
 
@@ -207,21 +208,44 @@ export default function LaporanKu() {
                   <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-ink-500 hover:bg-ink-50 transition-all">
                     <Share2 size={14} />
                   </button>
-                  <button
+                  {/* <button
                     className={clsx('ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all',
                       saved[l.id] ? 'bg-blue-50 text-blue-700' : 'text-ink-500 hover:bg-ink-50'
                     )}
                     onClick={() => toggleSave(l.id)}
                   >
                     <Bookmark size={14} className={saved[l.id] ? 'fill-blue-500' : ''} />
-                  </button>
-                  <Link href={`/laporan/${l.id}`} className="flex items-center gap-1 text-xs text-teal-600 hover:underline pl-1">
+                  </button> */}
+                  <Link href={`/laporan/${l.id}`} className="flex items-center gap-1 text-xs text-teal-600 hover:underline pl-1 ml-auto">
                     Lihat <ChevronRight size={12} />
                   </Link>
                 </div>
               </article>
             ))
           )}
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-4 p-3 card">
+            <span className="text-xs text-ink-400">Halaman {filter.page} dari {meta.totalPages}</span>
+            <div className="flex items-center gap-1">
+              <button
+                disabled={filter.page === 1}
+                className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === meta.page ? 'bg-teal-400 text-white' : 'hover:bg-ink-50 text-ink-600'}`}
+                onClick={() => setFilter(f => ({ ...f, page: meta.page - 1 }))}
+              >
+                <ChevronLeft />
+              </button>
+              <div className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center text-ink-600`}>
+                {meta.page}
+              </div>
+              <button
+                disabled={filter.page === meta.totalPages}
+                className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === meta.page ? 'bg-teal-400 text-white' : 'hover:bg-ink-50 text-ink-600'}`}
+                onClick={() => setFilter(f => ({ ...f, page: meta.page + 1 }))}
+              >
+                <ChevronRight />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right sidebar */}

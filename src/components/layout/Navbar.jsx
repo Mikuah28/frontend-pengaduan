@@ -11,7 +11,6 @@ import { Spinner } from '@/components/ui'
 const NAV_LINKS = [
   { label: 'Beranda', href: '/' },
   { label: 'Laporanku', href: '/laporanku' },
-  { label: 'Statistik', href: '/?tab=statistik' },
 ]
 
 function formatRelativeTime(dateStr) {
