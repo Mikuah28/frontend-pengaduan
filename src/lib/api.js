@@ -97,6 +97,7 @@ export const notificationApi = {
   getAll: (params) => api.get('/notification', { params }),
   markRead: (id) => api.patch(`/notification/${id}/read`),
   markAllRead: () => api.patch('/notification/read-all'),
+  create: (data) => api.post('/notification', data),
 }
 
 export const dashboardApi = {

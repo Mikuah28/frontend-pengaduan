@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { RoleBadge, Avatar, Spinner, Modal, ConfirmDialog, PageHeader, Pagination } from '@/components/ui'
-import { usersApi } from '@/lib/api'
-import { Plus, Trash2, Pencil, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { usersApi, notificationApi } from '@/lib/api'
+import { Plus, Trash2, Pencil, Filter, X, ChevronLeft, ChevronRight, Bell } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/context/AuthContext'
 
@@ -23,12 +23,15 @@ export default function UsersPage() {
   const [filter, setFilter] = useState({ role: '', page: 1 })
   const [meta, setMeta] = useState({ total: 0, totalPages: 1 })
 
-  console.log(`meta:`, meta)
-
   const [modal, setModal] = useState({ open: false, mode: 'create', data: null })
   const [form, setForm] = useState({ username: '', email: '', password: '', role: 'user' })
   const [saving, setSaving] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState({ open: false, id: null })
+
+  // --- STATE BARU UNTUK MODAL NOTIFIKASI ---
+  const [notiModal, setNotiModal] = useState({ open: false, user: null })
+  const [notiForm, setNotiForm] = useState({ isi_notifikasi: '', id_laporan: '', id_komentar: '' })
+  const [sendingNoti, setSendingNoti] = useState(false)
 
   useEffect(() => { loadUsers() }, [filter])
 
@@ -55,6 +58,36 @@ export default function UsersPage() {
   const openEdit = (u) => {
     setForm({ username: u.username, email: u.email, password: '', role: u.role?.nama_role || u.role })
     setModal({ open: true, mode: 'edit', data: u })
+  }
+
+  // --- HANDLER BARU UNTUK MODAL NOTIFIKASI ---
+  const openNotification = (u) => {
+    setNotiForm({ isi_notifikasi: '', id_laporan: '', id_komentar: '' })
+    setNotiModal({ open: true, user: u })
+  }
+
+  const handleSendNotification = async () => {
+    if (!notiForm.isi_notifikasi.trim()) {
+      return toast.error('Isi notifikasi tidak boleh kosong')
+    }
+
+    setSendingNoti(true)
+    try {
+      const payload = {
+        id_user: notiModal.user.id,
+        isi_notifikasi: notiForm.isi_notifikasi,
+        ...(notiForm.id_laporan && { id_laporan: Number(notiForm.id_laporan) }),
+        ...(notiForm.id_komentar && { id_komentar: Number(notiForm.id_komentar) })
+      }
+
+      await notificationApi.create(payload)
+      toast.success(`Notifikasi berhasil dikirim ke ${notiModal.user.username}`)
+      setNotiModal({ open: false, user: null })
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Gagal mengirim notifikasi')
+    } finally {
+      setSendingNoti(false)
+    }
   }
 
   const handleSave = async () => {
@@ -142,7 +175,7 @@ export default function UsersPage() {
                     <th>Email</th>
                     <th>Role</th>
                     <th>Bergabung</th>
-                    {isSuperAdmin && <th>Aksi</th>}
+                    <th>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -165,53 +198,63 @@ export default function UsersPage() {
                       <td className="text-[10px] text-ink-400">
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString('id-ID') : '—'}
                       </td>
-                      {isSuperAdmin && (
-                        <td>
-                          <div className="flex items-center gap-1">
-                            <button
-                              className="btn-icon hover:bg-blue-50 text-blue-600"
-                              onClick={() => openEdit(u)}
-                            >
-                              <Pencil size={13} />
-                            </button>
-                            <button
-                              className="btn-icon hover:bg-rose-50 text-rose-500"
-                              onClick={() => setDeleteDialog({ open: true, id: u.id })}
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </td>
-                      )}
+                      <td>
+                        <div className="flex items-center gap-1">
+                          {/* TOMBOL BARU: KIRIM NOTIFIKASI */}
+                          <button
+                            className="btn-icon hover:bg-amber-50 text-amber-500"
+                            title="Kirim Notifikasi"
+                            onClick={() => openNotification(u)}
+                          >
+                            <Bell size={13} />
+                          </button>
+                          {isSuperAdmin && (
+                            <>
+                              <button
+                                className="btn-icon hover:bg-blue-50 text-blue-600"
+                                onClick={() => openEdit(u)}
+                              >
+                                <Pencil size={13} />
+                              </button>
+                              <button
+                                className="btn-icon hover:bg-rose-50 text-rose-500"
+                                onClick={() => setDeleteDialog({ open: true, id: u.id })}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-                     {/* Pagination */}
-          <div className="flex items-center justify-between mt-4 p-3 card">
-            <span className="text-xs text-ink-400">Halaman {filter.page} dari {meta.totalPages}</span>
-            <div className="flex items-center gap-1">
-              <button
-                disabled={filter.page === 1}
-                className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === meta.page ? 'bg-teal-400 text-white' : 'hover:bg-ink-50 text-ink-600'}`}
-                onClick={() => setFilter(f => ({ ...f, page: meta.page - 1 }))}
-              >
-                <ChevronLeft />
-              </button>
-              <div className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center text-ink-600`}>
-                {meta.page}
+            {/* Pagination */}
+            <div className="flex items-center justify-between mt-4 p-3 card">
+              <span className="text-xs text-ink-400">Halaman {filter.page} dari {meta.totalPages}</span>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={filter.page === 1}
+                  className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-ink-50 text-ink-600'}`}
+                  onClick={() => setFilter(f => ({ ...f, page: f.page - 1 }))}
+                >
+                  <ChevronLeft size={14} />
+                </button>
+                <div className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center text-ink-600 font-medium`}>
+                  {filter.page}
+                </div>
+                <button
+                  disabled={filter.page === meta.totalPages}
+                  className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === meta.totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-ink-50 text-ink-600'}`}
+                  onClick={() => setFilter(f => ({ ...f, page: f.page + 1 }))}
+                >
+                  <ChevronRight size={14} />
+                </button>
               </div>
-              <button
-                disabled={filter.page === meta.totalPages}
-                className={`w-7 h-7 rounded-lg text-xs transition-all flex justify-center items-center ${filter.page === meta.page ? 'bg-teal-400 text-white' : 'hover:bg-ink-50 text-ink-600'}`}
-                onClick={() => setFilter(f => ({ ...f, page: meta.page + 1 }))}
-              >
-                <ChevronRight />
-              </button>
             </div>
-          </div>
           </>
         )}
       </div>
@@ -254,6 +297,54 @@ export default function UsersPage() {
               </select>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* --- MODAL BARU: BUAT & KIRIM NOTIFIKASI --- */}
+      <Modal
+        open={notiModal.open}
+        onClose={() => setNotiModal({ open: false, user: null })}
+        title={`Kirim Notifikasi ke ${notiModal.user?.username || ''}`}
+        footer={<>
+          <button className="btn-ghost" onClick={() => setNotiModal({ open: false, user: null })}>Batal</button>
+          <button className="btn-primary" onClick={handleSendNotification} disabled={sendingNoti}>
+            {sendingNoti && <Spinner size={13} className="text-white" />}
+            Kirim Notifikasi
+          </button>
+        </>}
+      >
+        <div className="flex flex-col gap-3">
+          <div>
+            <label className="form-label">Isi Notifikasi</label>
+            <textarea
+              className="form-input min-h-[80px] py-2"
+              placeholder="Tulis pesan notifikasi di sini..."
+              value={notiForm.isi_notifikasi}
+              onChange={e => setNotiForm(f => ({ ...f, isi_notifikasi: e.target.value }))}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="form-label">ID Laporan <span className="text-ink-400">(Opsional)</span></label>
+              <input
+                type="number"
+                className="form-input"
+                placeholder="Contoh: 12"
+                value={notiForm.id_laporan}
+                onChange={e => setNotiForm(f => ({ ...f, id_laporan: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="form-label">ID Komentar <span className="text-ink-400">(Opsional)</span></label>
+              <input
+                type="number"
+                className="form-input"
+                placeholder="Contoh: 45"
+                value={notiForm.id_komentar}
+                onChange={e => setNotiForm(f => ({ ...f, id_komentar: e.target.value }))}
+              />
+            </div>
+          </div>
         </div>
       </Modal>
 
