@@ -16,6 +16,7 @@ import { id as idLocale } from 'date-fns/locale'
 import toast from 'react-hot-toast'
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
+import { publicApi } from '@/lib/api'
 
 const UPLOAD_URL = process.env.NEXT_PUBLIC_UPLOAD_URL || 'http://localhost:5000/uploads/images'
 
@@ -30,6 +31,7 @@ export default function HomePage() {
   const [filter, setFilter] = useState({ status: '', kategori_id: '', page: 1 })
   const [search, setSearch] = useState('')
   const [meta, setMeta] = useState({ total: 0 })
+  const [stats, setStats] = useState({});
 
   useEffect(() => {
     if (!search.trim()) {
@@ -67,11 +69,22 @@ export default function HomePage() {
 
   useEffect(() => {
     loadKategori()
+    loadStats()
     if (user?.role !== 'user') {
       router.push('/dashboard')
     }
   }, [])
   useEffect(() => { loadLaporan() }, [filter])
+
+  async function loadStats() {
+    try {
+      const res = await publicApi.getStats()
+      setStats(res.data.data || {})
+
+    } catch { setStats({}) }
+  }
+
+   console.log(stats)
 
   async function loadKategori() {
     try {
@@ -168,8 +181,8 @@ export default function HomePage() {
           {/* Quick stats */}
           <div className="flex items-center gap-5 mt-5 pt-5 border-t border-white/8">
             {[
-              { label: 'Total laporan', value: meta.total || '1.248' },
-              { label: 'Selesai', value: '94%' },
+              { label: 'Total laporan', value: stats?.detail?.total_laporan || '1.248' },
+              { label: 'Selesai', value: stats?.persentase_penyelesaian || '94%' },
               { label: 'Respons', value: '3 hari' },
             ].map(({ label, value }) => (
               <div key={label}>
@@ -237,7 +250,7 @@ export default function HomePage() {
                 {/* Post header */}
                 <div className="flex items-start gap-3 p-4 pb-3">
                   <Link href={l?.user?.id === user?.id ?
-                    '/profile':
+                    '/profile' :
                     `user/${l.user.id}`
                   }>
                     {l.user?.foto_profil ?
